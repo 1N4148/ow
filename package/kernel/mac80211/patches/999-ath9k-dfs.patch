@@ -1,0 +1,91 @@
+--- a/drivers/net/wireless/ath/ath9k/dfs.c
++++ b/drivers/net/wireless/ath/ath9k/dfs.c
+@@ -205,6 +205,7 @@ ath9k_postprocess_radar_event(struct ath
+ {
+ 	u8 rssi;
+ 	u16 dur;
++	u32 width;
+ 
+ 	/*
+ 	 * Only the last 2 bits of the BW info are relevant, they indicate
+@@ -259,13 +260,21 @@ ath9k_postprocess_radar_event(struct ath
+ 		return false;
+ 	}
+ 
+-	if (rssi == 0) {
++	/* discard pulses with a too low rssi */
++	if (rssi <= 20) {
+ 		DFS_STAT_INC(sc, rssi_discards);
+ 		return false;
+ 	}
+ 
+ 	/* convert duration to usecs */
+-	pe->width = dur_to_usecs(sc->sc_ah, dur);
++	width = dur_to_usecs(sc->sc_ah, dur);
++	/* discard zero length pulses and pulses too long */
++	if (width == 0) {
++	        DFS_STAT_INC(sc, pulses_no_dfs);
++		return false;
++        }
++
++	pe->width = width;
+ 	pe->rssi = rssi;
+ 
+ 	DFS_STAT_INC(sc, pulses_detected);
+@@ -347,9 +356,15 @@ void ath9k_dfs_process_phyerr(struct ath
+ 
+ 	ath_dbg(common, DFS,
+ 		"ath9k_dfs_process_phyerr: type=%d, freq=%d, ts=%llu, "
+-		"width=%d, rssi=%d, delta_ts=%llu\n",
++		"width=%d, rssi=%d, chirp=%d, delta_ts=%llu\n",
++		ard.pulse_bw_info, pe.freq, pe.ts, pe.width, pe.rssi,
++		pe.chirp, pe.ts - sc->dfs_prev_pulse_ts);
++		
++	printk(KERN_DEBUG "ath9k_dfs_process_phyerr: type=%d, freq=%d, ts=%llu, "
++		"width=%d, rssi=%d, chirp=%d, delta_ts=%llu\n",
+ 		ard.pulse_bw_info, pe.freq, pe.ts, pe.width, pe.rssi,
+-		pe.ts - sc->dfs_prev_pulse_ts);
++		pe.chirp, pe.ts - sc->dfs_prev_pulse_ts);
++		
+ 	sc->dfs_prev_pulse_ts = pe.ts;
+ 	if (ard.pulse_bw_info & PRI_CH_RADAR_FOUND)
+ 		ath9k_dfs_process_radar_pulse(sc, &pe);
+--- a/drivers/net/wireless/ath/ath10k/wmi.c
++++ b/drivers/net/wireless/ath/ath10k/wmi.c
+@@ -3704,6 +3704,9 @@ static void ath10k_dfs_radar_report(stru
+ 		   "dfs add pulse freq: %d, width: %d, rssi %d, tsf: %llX\n",
+ 		   pe.freq, pe.width, pe.rssi, pe.ts);
+ 
++	printk(KERN_DEBUG "dfs add pulse freq: %d, width: %d, rssi %d, chirp %d, tsf: %llX\n",
++		   pe.freq, pe.width, pe.rssi, pe.chirp, pe.ts);
++
+ 	ATH10K_DFS_STAT_INC(ar, pulses_detected);
+ 
+ 	if (!ar->dfs_detector->add_pulse(ar->dfs_detector, &pe)) {
+@@ -3761,6 +3764,11 @@ static int ath10k_dfs_fft_report(struct
+ 		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
+ 		return -EINVAL;
+ 	}
++	
++	if (rssi <= 20) {
++		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
++		return -EINVAL;
++	}
+ 
+ 	return 0;
+ }
+--- a/drivers/net/wireless/ath/dfs_pattern_detector.c
++++ b/drivers/net/wireless/ath/dfs_pattern_detector.c
+@@ -299,6 +299,12 @@ dpd_add_pulse(struct dfs_pattern_detecto
+ 				"count=%d, count_false=%d\n",
+ 				event->freq, pd->rs->type_id,
+ 				ps->pri, ps->count, ps->count_falses);
++
++			printk(KERN_DEBUG "DFS: radar found on freq=%d: id=%d, pri=%d, "
++				"count=%d, count_false=%d\n",
++				event->freq, pd->rs->type_id,
++				ps->pri, ps->count, ps->count_falses);
++
+ 			pd->reset(pd, dpd->last_pulse_ts);
+ 			return true;
+ 		}
