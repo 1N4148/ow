@@ -50,30 +50,6 @@
  	sc->dfs_prev_pulse_ts = pe.ts;
  	if (ard.pulse_bw_info & PRI_CH_RADAR_FOUND)
  		ath9k_dfs_process_radar_pulse(sc, &pe);
---- a/drivers/net/wireless/ath/ath10k/wmi.c
-+++ b/drivers/net/wireless/ath/ath10k/wmi.c
-@@ -3704,6 +3704,9 @@ static void ath10k_dfs_radar_report(stru
- 		   "dfs add pulse freq: %d, width: %d, rssi %d, tsf: %llX\n",
- 		   pe.freq, pe.width, pe.rssi, pe.ts);
- 
-+	printk(KERN_DEBUG "dfs add pulse freq: %d, width: %d, rssi %d, chirp %d, tsf: %llX\n",
-+		   pe.freq, pe.width, pe.rssi, pe.chirp, pe.ts);
-+
- 	ATH10K_DFS_STAT_INC(ar, pulses_detected);
- 
- 	if (!ar->dfs_detector->add_pulse(ar->dfs_detector, &pe)) {
-@@ -3761,6 +3764,11 @@ static int ath10k_dfs_fft_report(struct
- 		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
- 		return -EINVAL;
- 	}
-+	
-+	if (rssi <= 20) {
-+		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
-+		return -EINVAL;
-+	}
- 
- 	return 0;
- }
 --- a/drivers/net/wireless/ath/dfs_pattern_detector.c
 +++ b/drivers/net/wireless/ath/dfs_pattern_detector.c
 @@ -299,6 +299,12 @@ dpd_add_pulse(struct dfs_pattern_detecto
