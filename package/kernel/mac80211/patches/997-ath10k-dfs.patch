@@ -6,7 +6,7 @@
  	pe.rssi = rssi;
 +	
 +	if ((pe.width == 0) || (pe.rssi <= 20)) {
-+		ath10k_info(ar, "Suspicious pulse detected\n");
++		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
 +		return;
 +	}
 +	
