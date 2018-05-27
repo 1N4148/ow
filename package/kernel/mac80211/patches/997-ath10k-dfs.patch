@@ -1,21 +1,23 @@
 --- a/drivers/net/wireless/ath/ath10k/wmi.c
 +++ b/drivers/net/wireless/ath/ath10k/wmi.c
-@@ -3699,10 +3699,19 @@ static void ath10k_dfs_radar_report(stru
+@@ -3699,10 +3699,21 @@ static void ath10k_dfs_radar_report(stru
  	pe.freq = ch->center_freq;
  	pe.width = width;
  	pe.rssi = rssi;
-+	
-+	if ((pe.width == 0) || (pe.rssi <= 20)) {
++
++	/*	
++	if (pe.rssi <= 10) {
 +		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
 +		return;
 +	}
++	*/
 +	
  	pe.chirp = (MS(reg0, RADAR_REPORT_REG0_PULSE_IS_CHIRP) != 0);
  	ath10k_dbg(ar, ATH10K_DBG_REGULATORY,
  		   "dfs add pulse freq: %d, width: %d, rssi %d, tsf: %llX\n",
  		   pe.freq, pe.width, pe.rssi, pe.ts);
 +		   
-+	printk(KERN_DEBUG "dfs add pulse freq: %d, width: %d, rssi %d, chirp %d, tsf: %llX\n",
++	printk(KERN_DEBUG "dfs add pulse: %d, %d, %d, %d, %llX\n",
 +		pe.freq, pe.width, pe.rssi, pe.chirp, pe.ts);
  
  	ATH10K_DFS_STAT_INC(ar, pulses_detected);
