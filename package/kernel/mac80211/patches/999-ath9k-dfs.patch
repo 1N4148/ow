@@ -1,24 +1,23 @@
 --- a/drivers/net/wireless/ath/ath9k/dfs.c
 +++ b/drivers/net/wireless/ath/ath9k/dfs.c
-@@ -205,6 +205,7 @@ ath9k_postprocess_radar_event(struct ath
- {
- 	u8 rssi;
- 	u16 dur;
-+	u32 width;
- 
- 	/*
- 	 * Only the last 2 bits of the BW info are relevant, they indicate
-@@ -265,7 +266,8 @@ ath9k_postprocess_radar_event(struct ath
+@@ -259,7 +259,7 @@ ath9k_postprocess_radar_event(struct ath
+ 		return false;
  	}
  
- 	/* convert duration to usecs */
--	pe->width = dur_to_usecs(sc->sc_ah, dur);
-+	width = dur_to_usecs(sc->sc_ah, dur);
-+	pe->width = width;
- 	pe->rssi = rssi;
- 
- 	DFS_STAT_INC(sc, pulses_detected);
-@@ -350,6 +352,10 @@ void ath9k_dfs_process_phyerr(struct ath
+-	if (rssi == 0) {
++	if (rssi <= 15) {
+ 		DFS_STAT_INC(sc, rssi_discards);
+ 		return false;
+ 	}
+@@ -276,7 +276,6 @@ static void
+ ath9k_dfs_process_radar_pulse(struct ath_softc *sc, struct pulse_event *pe)
+ {
+ 	struct dfs_pattern_detector *pd = sc->dfs_detector;
+-	DFS_STAT_INC(sc, pulses_processed);
+ 	if (pd == NULL)
+ 		return;
+ 	if (!pd->add_pulse(pd, pe))
+@@ -350,6 +349,11 @@ void ath9k_dfs_process_phyerr(struct ath
  		"width=%d, rssi=%d, delta_ts=%llu\n",
  		ard.pulse_bw_info, pe.freq, pe.ts, pe.width, pe.rssi,
  		pe.ts - sc->dfs_prev_pulse_ts);
@@ -26,6 +25,7 @@
 +	printk(KERN_DEBUG "dfs add pulse: %d, %d, %d, %d, %llX\n",
 +              	pe.freq, pe.width, pe.rssi, pe.chirp, pe.ts);
 +
++	DFS_STAT_INC(sc, pulses_processed);
  	sc->dfs_prev_pulse_ts = pe.ts;
  	if (ard.pulse_bw_info & PRI_CH_RADAR_FOUND)
  		ath9k_dfs_process_radar_pulse(sc, &pe);
