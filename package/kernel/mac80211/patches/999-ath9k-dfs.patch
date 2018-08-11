@@ -16,14 +16,14 @@
 -	DFS_STAT_INC(sc, pulses_processed);
  	if (pd == NULL)
  		return;
- 	if (!pd->add_pulse(pd, pe))
+ 	if (!pd->add_pulse(pd, pe, NULL))
 @@ -350,6 +349,11 @@ void ath9k_dfs_process_phyerr(struct ath
  		"width=%d, rssi=%d, delta_ts=%llu\n",
  		ard.pulse_bw_info, pe.freq, pe.ts, pe.width, pe.rssi,
  		pe.ts - sc->dfs_prev_pulse_ts);
 +
-+	printk(KERN_DEBUG "dfs add pulse: %d, %d, %d, %d, %llX\n",
-+              	pe.freq, pe.width, pe.rssi, pe.chirp, pe.ts);
++	/*printk(KERN_DEBUG "dfs add pulse: %d, %d, %d, %d, %llX\n",
++              	pe.freq, pe.width, pe.rssi, pe.chirp, pe.ts);*/
 +
 +	DFS_STAT_INC(sc, pulses_processed);
  	sc->dfs_prev_pulse_ts = pe.ts;
