@@ -343,8 +343,8 @@
 
 		spi_cs1: spi1 {
 			spi1 {
-				ralink,group = "spi_cs1";
-				ralink,function = "spi_cs1";
+				ralink,group = "spi refclk";
+				ralink,function = "spi refclk";
 			};
 		};
 
@@ -415,6 +415,13 @@
 			pa {
 				ralink,group = "pa";
 				ralink,function = "pa";
+			};
+		};
+
+		sdhci_pins: sdhci {
+			sdhci {
+				ralink,group = "nd_sd";
+				ralink,function = "sd";
 			};
 		};
 	};
@@ -495,6 +502,9 @@
 
 		interrupt-parent = <&intc>;
 		interrupts = <14>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&sdhci_pins>;
 
 		status = "disabled";
 	};
