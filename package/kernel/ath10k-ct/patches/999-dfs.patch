@@ -1,0 +1,13 @@
+--- a/ath10k-4.16/wmi.c
++++ b/ath10k-4.16/wmi.c
+@@ -4054,6 +4054,10 @@ static void ath10k_dfs_radar_report(stru
+ 	pe.freq = ch->center_freq;
+ 	pe.width = width;
+ 	pe.rssi = rssi;
++	if (pe.rssi <= 15) {
++		ATH10K_DFS_STAT_INC(ar, pulses_discarded);
++		return;
++	}
+ 	pe.chirp = (MS(reg0, RADAR_REPORT_REG0_PULSE_IS_CHIRP) != 0);
+ 	ath10k_dbg(ar, ATH10K_DBG_REGULATORY,
+ 		   "dfs add pulse freq: %d, width: %d, rssi %d, tsf: %llX chirp: %d\n",
