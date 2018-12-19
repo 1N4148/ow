@@ -1,5 +1,5 @@
---- a/ath10k-4.16/wmi.c
-+++ b/ath10k-4.16/wmi.c
+--- a/ath10k-4.19/wmi.c
++++ b/ath10k-4.19/wmi.c
 @@ -4054,6 +4054,10 @@ static void ath10k_dfs_radar_report(stru
  	pe.freq = ch->center_freq;
  	pe.width = width;
