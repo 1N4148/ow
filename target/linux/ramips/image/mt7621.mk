@@ -93,21 +93,12 @@ endef
 TARGET_DEVICES += 11acnas
 
 define Device/dir-860l-b1
+  $(Device/seama)
   DTS := DIR-860L-B1
   BLOCKSIZE := 64k
-  IMAGES += factory.bin
+  SEAMA_SIGNATURE := wrgac13_dlink.2013gui_dir860lb
   KERNEL := kernel-bin | patch-dtb | relocate-kernel | lzma | uImage lzma
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  IMAGE/sysupgrade.bin := \
-	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | append-rootfs | \
-	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
-	pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory.bin := \
-	append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | \
-	append-rootfs | pad-rootfs -x 64 | \
-	seama -m "dev=/dev/mtdblock/2" -m "type=firmware" | \
-	seama-seal -m "signature=wrgac13_dlink.2013gui_dir860lb" | \
-	check-size $$$$(IMAGE_SIZE)
   DEVICE_TITLE := D-Link DIR-860L B1
   DEVICE_PACKAGES := kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
 endef
@@ -178,6 +169,15 @@ define Device/firewrt
   DEVICE_PACKAGES := kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
 endef
 TARGET_DEVICES += firewrt
+
+define Device/gehua_ghl-r-001
+  DTS := GHL-R-001
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := GeHua GHL-R-001
+  DEVICE_PACKAGES := \
+	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-usb-ledtrig-usbport wpad-basic
+endef
+TARGET_DEVICES += gehua_ghl-r-001
 
 define Device/gnubee_gb-pc1
   DTS := GB-PC1
