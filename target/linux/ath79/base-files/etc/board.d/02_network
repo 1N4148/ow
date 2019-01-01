@@ -77,6 +77,7 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
 		;;
+	elecom,wrc-1750ghbk2-i|\
 	elecom,wrc-300ghbk2-i)
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan:4" "3:lan:3" "4:lan:2" "5:lan:1" "1:wan"
@@ -85,13 +86,23 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:wan" "2:lan:3" "3:lan:2"
 		;;
+	engenius,ews511ap)
+		ucidef_set_interface_lan "eth0 eth1" "dhcp"
+		;;
 	etactica,eg200)
 		ucidef_set_interface_lan "eth0" "dhcp"
 		;;
-	glinet,ar150|\
-	glinet,ar300m|\
-	glinet,gl-x750)
+	glinet,gl-ar150|\
+	glinet,gl-ar300m-nand|\
+	glinet,gl-ar300m-nor|\
+	glinet,gl-x750|\
+	tplink,tl-wr810n-v1|\
+	tplink,tl-wr810n-v2)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		;;
+	glinet,ar750s)
+		ucidef_add_switch "switch0" \
+			"0@eth0" "2:lan:2" "3:lan:1" "1:wan"
 		;;
 	nec,wg800hp)
 		ucidef_add_switch "switch0" \
@@ -143,6 +154,7 @@ ath79_setup_interfaces()
 			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
 	tplink,archer-a7-v5|\
+	tplink,archer-c6-v2|\
 	tplink,archer-c7-v5|\
 	tplink,tl-wdr3600|\
 	tplink,tl-wdr4300)
@@ -178,6 +190,7 @@ ath79_setup_interfaces()
 			"0@eth1" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
 	tplink,tl-wr740nd-v4|\
+	tplink,tl-wr841-v8|\
 	tplink,tl-wr842n-v1|\
 	tplink,tl-wr842n-v2)
 		ucidef_set_interface_wan "eth0"
@@ -239,8 +252,15 @@ ath79_setup_macs()
 		lan_mac=$(mtd_get_mac_ascii devdata "lanmac")
 		wan_mac=$(mtd_get_mac_ascii devdata "wanmac")
 		;;
+	elecom,wrc-1750ghbk2-i|\
 	elecom,wrc-300ghbk2-i)
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary ART 4098)" -2)
+		;;
+	engenius,ews511ap)
+		lan_mac=$(mtd_get_mac_text "u-boot-env" 233)
+		eth1_mac=$(macaddr_add "$lan_mac" 1)
+		ucidef_set_interface "eth0" ifname "eth0" protocol "none" macaddr "$lan_mac"
+		ucidef_set_interface "eth1" ifname "eth1" protocol "none" macaddr "$eth1_mac"
 		;;
 	iodata,etg3-r)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
