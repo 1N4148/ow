@@ -265,9 +265,9 @@ hostapd_set_bss_options() {
 
 	set_default isolate 0
 	set_default maxassoc 0
-	set_default max_inactivity 0
+	set_default max_inactivity 3600
 	set_default short_preamble 1
-	set_default disassoc_low_ack 0
+	set_default disassoc_low_ack 1
 	set_default hidden 0
 	set_default wmm 1
 	set_default uapsd 1
@@ -278,6 +278,7 @@ hostapd_set_bss_options() {
 	set_default bss_load_update_period 60
 	set_default chan_util_avg_period 600
 	set_default utf8_ssid 1
+	set_default wpa_group_rekey 86400
 	
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
